@@ -10,7 +10,7 @@ a1b2c3d4e5f
 treb7uchet
 """
 
-example2="""two1nine
+example2 = """two1nine
 eightwothree
 abcone2threexyz
 xtwone3four
@@ -18,75 +18,66 @@ xtwone3four
 zoneight234
 7pqrstsixteen"""
 
-str_digit_map = {
-    "one" : 1,
-    "two": 2,
-    "three": 3,
-    "four": 4,
-    "five": 5,
-    "six": 6,
-    "seven" : 7,
-    "eight": 8,
-    "nine": 9
-}
-def calc_part1(input):
-    sum = 0
-    for line in input.splitlines():
-        for s in line:
-            if s.isdigit():
-                sum += 10*int(s)
-                print(10*int(s))
-                break
-        for e in line[::-1]:
-            if e.isdigit():
-                sum += int(e)
-                print(int(e))
-                break
+str_digit_map = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
 
-    return sum
+
+def calc_part1(input_string):
+    def find_first_digit(s):
+        for char in s:
+            if char.isdigit():
+                return int(char)
+        return 0
+
+    calibration_values = 0
+    for line in input_string.splitlines():
+        first_digit = find_first_digit(line)
+        last_digit = find_first_digit(line[::-1])
+        calibration_values += 10 * first_digit + last_digit
+
+    return calibration_values
+
 
 def part1():
+    print("Part 1:")
     erg = calc_part1(example.strip())
-    print(f"Example: {erg}")
+    print(f"Example {erg}")
     assert erg == 142
-#    print(calc_part1(input))
+    print(calc_part1(input))
 
+
+
+def find_substr(line: str, reverse=False):
+    digit_map = {str(dig): num for num, dig in enumerate(str_digit_map, 1)}
+
+    # Helper function to find substring digit
+    def find_digit_substring(s):
+        for digit_str, digit_num in digit_map.items():
+            if s.startswith(digit_str):
+                return digit_num
+        return None
+
+    # Iterating over the string
+    range_func = range(len(line) - 1, -1, -1) if reverse else range(len(line))
+    for i in range_func:
+        if line[i].isdigit():
+            return int(line[i])
+        digit = find_digit_substring(line[i:])
+        if digit is not None:
+            return digit
 
 def calc_part2(input):
-    sum = 0
+    calibration_values = 0
     for line in input.splitlines():
-        for count, s in enumerate(line):
-            if s.isdigit():
-                sum += 10*int(s)
-                break
-            for num_str, dig in str_digit_map.items():
-                if line[count:count+len(num_str)] == num_str:
-                    sum += 10*dig
-                    break
-            else:
-                continue
-            break
-        for count, e in enumerate(line[::-1]):
-            line_rev = line[::-1]
-            if e.isdigit():
-                sum += int(e)
-                break
-            for num_str, dig in str_digit_map.items():
-                rev_numstr = num_str[::-1]
-                sub_str = line_rev[count:count + len(num_str)]
-                if sub_str == rev_numstr:
-                    sum += dig
-                    break
-            else:
-                continue
-            break
+        first_digit = find_substr(line)
+        last_digit = find_substr(line, reverse=True)
+        calibration_values += 10*first_digit + last_digit
 
-    return sum
+    return calibration_values
 
 
 def part2():
-    pass
+    print("Part 2:")
     erg = calc_part2(example2)
-    print(f"Example2: {erg}")
+    print(f"Example {erg}")
     assert erg == 281
     print(calc_part2(input))
