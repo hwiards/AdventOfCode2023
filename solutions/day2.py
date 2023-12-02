@@ -1,6 +1,9 @@
 import os
 from input_loader import *
 from helpers import *
+import re
+from collections import defaultdict
+from math import prod
 
 input = load_input_str(os.path.basename(__file__)[:-3])
 
@@ -11,28 +14,25 @@ Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"""
 
 
-
 def calc_part1(input):
 
     sum_of_possible_games = 0
     sum_of_powers = 0
     for game in input.splitlines():
-        max_dict = {}
-        game_id = int(game.split(":")[0].split(" ")[1])
-        for round in game.split(":")[1].split(";"):
+        max_dict = defaultdict(int)
+        game_id = int(re.search(r"\d+", game).group(0))
+        rounds = game.split(":")[1]
+        for round in rounds.split(";"):
             for num_color in round.split(","):
                 num, color = num_color.strip().split(" ")
                 num = int(num)
-                if color in max_dict:
-                    if max_dict[color] < num:
-                        max_dict[color] = num
-                else:
-                    max_dict[color] = num
-        #print(max_dict)
-        power = 1
-        for num_items in max_dict.values():
-            power *= num_items
-        sum_of_powers += power
+                max_dict[color] = max(max_dict[color], num)
+
+        # Part 2
+        power_of_items = prod(max_dict.values())
+        sum_of_powers += power_of_items
+
+        # Part 1
         if max_dict["red"] > 12 or max_dict["green"] > 13 or max_dict["blue"] > 14:
             continue
         sum_of_possible_games += game_id
@@ -43,16 +43,15 @@ def part1():
     erg, _ = calc_part1(example.strip())
     print(f"Example: {erg}")
     #assert erg == 123
-    print(calc_part1(input))
+    print(f"Result Part 1: {calc_part1(input)[0]}")
 
 
 def calc_part2(input):
-    pass
+    return calc_part1(input)[1]
 
 def part2():
     pass
-    _, erg = calc_part1(example)
-    print(f"Example2: {erg}")
+    erg = calc_part2(example)
+    print(f"Example 2: {erg}")
     #assert erg == 70
-    _, erg = calc_part1(input)
-    print(erg)
+    print(f"Result Part 2: {calc_part2(input)}")
