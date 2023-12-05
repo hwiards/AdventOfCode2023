@@ -38,53 +38,36 @@ humidity-to-location map:
 60 56 37
 56 93 4"""
 
-def block_to_ranges(block:str):
+
+def block_to_ranges(block: str):
     block_lines = block.splitlines()
     ranges = []
 
     for line in block_lines[1:]:
         line_nums = list(map(int, line.split()))
-        #des_range = range(line_nums[0], line_nums[2])
-        source_range = range(line_nums[1], line_nums[1]+line_nums[2])
+        source_range = range(line_nums[1], line_nums[1] + line_nums[2])
         offset = line_nums[0] - line_nums[1]
         ranges.append([source_range, offset])
 
     return ranges
 
-def source_to_dest(input, map_lines):
-    for map in map_lines:
-        source = map[0]
-        offset = map[1]
-        if input in source:
-            return input + offset
 
-    return input
+def source_to_dest(input_location, map_lines):
+    for mapping in map_lines:
+        source = mapping[0]
+        offset = mapping[1]
+        if input_location in source:
+            return input_location + offset
+
+    return input_location
+
 
 def calc_part1(input):
-
     locations = []
     blocks = input.split("\n\n")
-
     initial_seeds = list(map(int, blocks[0][7:].split()))
 
-    seed_to_soil = block_to_ranges(blocks[1])
-    soil_to_fertilizer = block_to_ranges(blocks[2])
-    fertilizer_to_water = block_to_ranges(blocks[3])
-    water_to_light = block_to_ranges(blocks[4])
-    light_to_temp = block_to_ranges(blocks[5])
-    temo_to_humiditiy = block_to_ranges(blocks[6])
-    humidity_to_location = block_to_ranges(blocks[7])
-
-
-    maps = [
-        seed_to_soil,
-        soil_to_fertilizer,
-        fertilizer_to_water,
-        water_to_light,
-        light_to_temp,
-        temo_to_humiditiy,
-        humidity_to_location
-    ]
+    maps = [block_to_ranges(block) for block in blocks[1:]]
 
     for initial_seed in initial_seeds:
         value = initial_seed
@@ -96,8 +79,6 @@ def calc_part1(input):
     return min(locations)
 
 
-
-
 def part1():
     erg = calc_part1(example.strip())
     print(f"Example Part 1: {erg}")
@@ -105,32 +86,36 @@ def part1():
     print(f"Result Part 1: {calc_part1(input)}")
 
 
-
-def source_to_dest2(input_ranges:set, map_lines):
-
+def source_to_dest2(input_ranges: set, map_lines):
     output_ranges = []
     while input_ranges:
         input_range = input_ranges.pop()
         for maping in map_lines:
             source = maping[0]
             offset = maping[1]
+
             if input_range.start in source:
                 if len(input_range) <= len(source):
-                    output_ranges.append(range(input_range.start+offset, input_range.stop + offset))
+                    # Full range maps
+                    output_ranges.append(range(input_range.start + offset, input_range.stop + offset))
                 else:
                     # len(input_range) > len(source)
-                    output_range = range(input_range.start+offset, source.stop + offset)
+                    # start of input maps until end of source range, add remaining range to input
+                    output_range = range(input_range.start + offset, source.stop + offset)
                     output_ranges.append(output_range)
                     remaining_input = range(source.stop, input_range.stop)
                     input_ranges.add(remaining_input)
                 break
             elif source.start in input_range:
+                # inputs starts before the source, add remaining range of the front to the input range
                 remaining_input = range(input_range.start, source.start)
                 input_ranges.add(remaining_input)
                 if source.stop >= input_range.stop:
-                    output_range = range(source.start + offset, input_range.stop+offset)
+                    # input end completely fully in the source range
+                    output_range = range(source.start + offset, input_range.stop + offset)
                     output_ranges.append(output_range)
                 else:
+                    # It does not fit completely in the source range, add remaining to input ranges
                     output_range = range(source.start + offset, source.stop + offset)
                     output_ranges.append(output_range)
                     remaining_input = range(source.stop, input_range.stop)
@@ -138,47 +123,29 @@ def source_to_dest2(input_ranges:set, map_lines):
                 break
 
         else:
+            # No mapping does fit, therefore it maps n->n to the output
             output_ranges.append(input_range)
 
-
-
+    # use sets to filter duplicate ranges
     return set(output_ranges)
+
+
 def calc_part2(input):
-    location_min = 100_000_000_000
     blocks = input.split("\n\n")
 
-    initial_seeds_ = list(map(int, blocks[0][7:].split()))
-    initial_seeds = []
-    for start, length in grouped(initial_seeds_, 2):
-        initial_seeds.append(range(start, start+length))
+    initial_seeds = list(map(int, blocks[0][7:].split()))
+    initial_seeds = [range(start, start + length) for start, length in grouped(initial_seeds, 2)]
 
-
-
-    seed_to_soil = block_to_ranges(blocks[1])
-    soil_to_fertilizer = block_to_ranges(blocks[2])
-    fertilizer_to_water = block_to_ranges(blocks[3])
-    water_to_light = block_to_ranges(blocks[4])
-    light_to_temp = block_to_ranges(blocks[5])
-    temo_to_humiditiy = block_to_ranges(blocks[6])
-    humidity_to_location = block_to_ranges(blocks[7])
-
-    maps = [
-        seed_to_soil,
-        soil_to_fertilizer,
-        fertilizer_to_water,
-        water_to_light,
-        light_to_temp,
-        temo_to_humiditiy,
-        humidity_to_location
-    ]
+    maps = [block_to_ranges(block) for block in blocks[1:]]
 
     set_of_target_ranges = set(initial_seeds)
-    for maping in maps:
-        set_of_target_ranges = source_to_dest2(set_of_target_ranges, maping)
+    for mapping in maps:
+        set_of_target_ranges = source_to_dest2(set_of_target_ranges, mapping)
 
     location_min = min([loc_range.start for loc_range in set_of_target_ranges])
 
     return location_min
+
 
 def part2():
     erg = calc_part2(example)
