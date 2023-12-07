@@ -23,3 +23,5 @@ if __name__ == '__main__':
     if len(arguments) == 1:
         # no argument
         execute()
+    else:
+        execute(day_name= sys.argv[1])
