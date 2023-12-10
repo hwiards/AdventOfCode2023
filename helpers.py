@@ -31,3 +31,17 @@ def char_to_number(character: str, reference = None):
 
 def grouped(iterable, n):
     return zip(*[iter(iterable)]*n)
+
+def pad(text, char):
+    lines = text.splitlines()
+    line_len = len(lines[0])
+    padded = [char * (line_len+2)]
+    for line in lines:
+        padded.append(char + line + char)
+    padded.append(char * (line_len+2))
+
+    return "\n".join(padded)
+
+
+def tadd(a: tuple[int],b: tuple[int]):
+    return (x+y for x, y in zip(a,b))
