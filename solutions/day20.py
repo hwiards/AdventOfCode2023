@@ -18,7 +18,8 @@ example2 = """broadcaster -> a
 &con -> output"""
 
 
-def press_button(state, state_conjunct, instructions: dict[str, tuple], part2=False):
+def press_button(state, state_conjunct, instructions: dict[str, tuple], part2=False, rx_feeder=None,
+                 num_inputs_rx_feeder=None):
     highs, lows = 0, 0
 
     vals = {}
@@ -39,10 +40,10 @@ def press_button(state, state_conjunct, instructions: dict[str, tuple], part2=Fa
             destinations, typ = instructions[seq_elem]
 
             # Part 2
-            if seq_elem == "cs" and signal == 1:
+            if seq_elem == rx_feeder and signal == 1:
                 if sender not in vals:
                     vals[sender] = n
-                if len(vals) == 4:
+                if len(vals) == num_inputs_rx_feeder:
                     return math.lcm(*vals.values())
 
             if typ is None:
@@ -99,7 +100,12 @@ def part1():
 
 def calc_part2(input_str):
     state, states_conjunct, instr = parse(input_str)
-    return press_button(state, states_conjunct, instr, part2=True)
+
+    rx_feeder = [module for module, (dests, _) in instr.items() if "rx" in dests][0]
+    num_inputs_rx_feeder = len([module for module, (dests, _) in instr.items() if rx_feeder in dests])
+
+    return press_button(state, states_conjunct, instr, part2=True,
+                        rx_feeder=rx_feeder, num_inputs_rx_feeder=num_inputs_rx_feeder)
 
 
 def part2():
